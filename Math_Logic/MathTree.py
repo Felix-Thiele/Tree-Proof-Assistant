@@ -1,0 +1,285 @@
+from Math_Logic.Tree import TreeNode
+from Math_Logic.Statement import Statement
+from Math_Logic.Property import Property
+from Math_Logic.Term import Term
+from Math_Logic import ParseStr
+import copy
+
+
+"""
+MathTree is the main MathLogic class. Each node consists of either one statement or one property. Also for each node the
+contained active adjective etc letters are saved in a sql table.
+"""
+
+
+class MathTree(TreeNode):
+
+    def __init__(self, parent, sentence, position=(0, 0)):
+        super().__init__(parent)
+
+        # a sentence is either a property or a statement
+        self.sentence = sentence
+
+        self.let_contained = []
+        self.let_active = []
+        self.let_adjective = []
+        self.let_definite = []
+        self.equal = []
+        self.abbreviations = {}
+        self.type = None
+        if self.sentence.__class__.__name__ == "str":
+            self.sentence = Statement(self.sentence)
+        if self.sentence.__class__.__name__ == "Statement":
+            self.set_up_statement()
+            self.type = "statement"
+        elif self.sentence.__class__.__name__=="Property":
+            self.set_up_property()
+            self.type = "property"
+
+    def set_up_statement(self):
+        self.let_contained = self.sentence.get_letters()
+        if self.parent is not None:
+            self.let_definite = self.parent.let_definite
+            self.let_adjective = self.parent.let_adjective
+            self.let_active = self.parent.let_active+self.parent.let_contained
+            self.equal = self.parent.equal
+            self.abbreviations = self.parent.abbreviations
+        # definite
+        if not self.sentence.presumptions:
+            for letter in self.sentence.get_letters():
+                if letter not in self.let_adjective:
+                    self.let_definite.append(letter)
+        # elementary equal
+        if self.sentence.is_equality():
+            self.equal.append((self.sentence.parameters[0], self.sentence.parameters[1]))
+
+    def set_up_property(self):
+        if self.parent is not None:
+            self.let_definite = self.parent.let_definite
+            self.let_adjective = self.parent.let_adjective
+            self.let_active = self.parent.let_active+self.parent.let_contained
+            self.equal = self.parent.equal
+            self.abbreviations = self.parent.abbreviations
+        # adjective
+        self.let_adjective.append(self.sentence.contraction.acronym)
+        if self.sentence.contraction.acronym not in self.abbreviations:
+            self.abbreviations[self.sentence.contraction.acronym] = self.sentence
+        self.let_adjective = list(set(self.let_adjective))
+
+
+    # Addition Rule 2.2 and Rule 4.3
+
+
+    def addition(self, var1, var2, relation):
+        check = self.check_addition(var1, var2, relation)
+        if check[0]:
+            childstatement = Statement(var1 + relation + var2)
+            child = MathTree(self, childstatement)
+            self.add_child(child)
+            return True, "Elementary Addition successful", child
+        else:
+            return False, check[1]
+
+    def check_addition(self, var1, var2, relation):
+        var1, var2 = Term(var1), Term(var2)
+        letters1 = var1.get_letters()
+        letters2 = var2.get_letters()
+        # functional term
+        if var1.is_functional() and var2.is_functional():
+            return False, "cant add two functional terms"
+        if var1.is_functional():
+            if var2 not in self.let_active:
+                for let in letters1:
+                    if let not in self.let_definite:
+                        return False, "letter is not definite"
+                return True, "possible elementary addition"
+        if var2.is_functional():
+            if var1 not in self.let_active:
+                for let in letters2:
+                    if let not in self.let_definite:
+                        return False, "letter is not definite"
+                return True, "possible elementary addition"
+        # elementary Term
+        if (var1 not in self.let_active and var2 in self.let_definite) or (
+                var2 not in self.let_active and var1 in self.let_definite):
+            return True, "possible elementary addition"
+        if (var1 not in self.let_active and var2 not in self.let_active) or (
+                var1 in self.let_definite and var2 in self.let_definite):
+            if var1 == var2 and relation == "=":
+                return True, "possible elementary addition"
+            return False, "If both letter are of the same flavour, the equality must be reflexive"
+        return False, "Both letters have to either be inactive or indefinite"
+
+
+    # Elementary Substitution Rule 2.3
+
+
+    def elementary_substitution(self, node, var1, var2):
+        if self.type == "statement":
+            if self.check_equal(var1, var2):
+                var1, var2 = Term(var1), Term(var2)
+                modcopy = node.sentence.replace(var1, var2)
+                child = MathTree(self, modcopy)
+                self.add_child(child)
+                return True, "Substitution successful", child
+            else:
+                return False, "These are not equal"
+        return False, "substitution can only be "
+
+    def check_equal(self, var1, var2):
+        var1, var2 = Term(var1), Term(var2)
+        if (var1, var2) in self.equal or (var2, var1) in self.equal:
+            return True
+        return False
+
+
+    # Dual Statements Rule 2.4
+
+
+    def dual_statement(self, statementstr):
+        # add dual statements to a leaf
+        statement = Statement(statementstr)
+        dual = statement.get_dual()
+        if statement.check_admissible(self) and dual.check_admissible(self):
+            childa = MathTree(self, statement)
+            childb = MathTree(self, dual)
+            self.add_child(childa)
+            self.add_child(childb)
+            return True, "added dual statement", childa, childb
+        return False, "dual statement not admissible"
+
+    def contradiction(self, anc1, anc2):
+        # if two contradictory statements are found, go back to the last dual split, and add the right statement as
+        # middle child
+        if anc1.sentence == anc2.sentence.get_dual():
+            cur, lastcur = self, self
+            while len(cur.children) != 2:
+                if cur.has_parent():
+                    lastcur = cur
+                    cur = cur.parent
+                else:
+                    return False, "False Tree, mistakes were made"
+            child = MathTree(self, lastcur.sentence.get_dual())
+            cur.add_child(child, "middle")
+            return True, "Contradiction successful"
+        return False, "statements not dual"
+
+
+    # Definition Rule 3.3
+
+
+    def definition(self, ancestor, var_Str):
+        if len(ancestor.sentence.presumptions) > 0:
+            hypothesis = ancestor.sentence.presumptions[0][1]
+            hyp_quantifier = ancestor.sentence.presumptions[0][0]
+            conclusion = ancestor.sentence.copy()
+            conclusion.presumptions = conclusion.presumptions[1:]
+            if hyp_quantifier == "existential":
+                if hypothesis.check_admissible(self):
+                    child = MathTree(self, hypothesis)
+                    subchild = MathTree(self, conclusion)
+                    self.add_child(child)
+                    child.add_child(subchild)
+                else:
+                    var = Term(var_Str)
+                    if var not in self.let_active:
+                        var_indefinite = Term(repr(hypothesis.get_first_indefinite(self)))
+                        child_statement = hypothesis.replace(var_indefinite, var).copy()
+                        subchild_statement = conclusion.replace(var_indefinite, var).copy()
+                        child = MathTree(self, child_statement)
+                        subchild = MathTree(self, subchild_statement)
+                        self.add_child(child)
+                        child.add_child(subchild)
+                    else:
+                        return False, "the entered variable is not inactive"
+            else:
+                return False, "ancestor is not existential"
+        else:
+            return False, "ancestor is not quantified"
+        return True, "successful definition", child, subchild
+
+
+    # Deduction Rule 3.4
+
+
+    def Deduction(self, ancestor, hypothesis_ancestor):
+        if len(ancestor.sentence.presumptions) > 0:
+            hypothesis = ancestor.sentence.presumptions[0][1]
+            hyp_quantifier = ancestor.sentence.presumptions[0][0]
+            conclusion = ancestor.sentence.copy()
+            conclusion.presumptions = conclusion.presumptions[1:]
+            if hyp_quantifier == "universal":
+                if hypothesis.check_admissible(self):
+                    if hypothesis == hypothesis_ancestor.sentence:
+                        child = MathTree(self, Statement(hypothesis))
+                        subchild = MathTree(self, Statement(conclusion))
+                        self.add_child(child)
+                        child.add_child(subchild)
+                    else:
+                        return False, "The hypothesis is not the statement of the third ancestor"
+                else:
+                    hypanc = hypothesis_ancestor.sentence
+                    hyp_lets, hypanc_lets = hypothesis.get_letters(), hypanc.get_letters()
+                    if len(hyp_lets) == len(hypanc_lets):
+                        index = 0
+                        if hypanc == hypothesis:
+                            return False, "Third ancestor is not modified copy of hypothesis"
+                        while hyp_lets[index] == hypanc_lets[index]:
+                            index += 1
+                        mod_hypothesis = hypothesis.replace(hyp_lets[index], hypanc_lets[index])
+                        if mod_hypothesis == hypanc:
+                            child_statement = hypothesis.replace(hyp_lets[index], hypanc_lets[index]).copy()
+                            subchild_statement = conclusion.replace(hyp_lets[index], hypanc_lets[index]).copy()
+                            if child_statement.check_admissible(self) and subchild_statement.check_admissible(self):
+                                subchild = MathTree(self, subchild_statement)
+                                self.add_child(subchild)
+                            else:
+                                return False, "Either the modified hypothesis or modified conclusion are not admissible"
+                        else:
+                            return False, "hypothesis can not be modified to equal third ancestor"
+                    else:
+                        return False, "hypothesis can not be modified to equal third ancestor"
+            else:
+                return False, "ancestor is not universal"
+        else:
+            return False, "ancestor is not quantified"
+        return True, "successful definition", subchild
+
+
+    # Property addition Rule 4.7
+
+
+    def property_addition(self, prop_str):
+        if ParseStr.check_valid_prop_string(prop_str):
+            property = Property(prop_str)
+            if property.check_admissible(self):
+                if property.contraction.acronym in self.let_adjective:
+                    if self.abbreviations[property.contraction.acronym].check_modified_copy(property):
+                        child = MathTree(self, property)
+                        self.add_child(child)
+                        return True, "Property Addition successful", child
+                    return False, "Property is not proper modified copy"
+                child = MathTree(self, property)
+                self.add_child(child)
+                return True, "Property Addition successful", child
+            return False, "The Property was not admissible"
+        return False, "Not a valid property string"
+
+
+    # Apply Property Rule 4.9
+
+
+    def apply_property(self, property, statement):
+        if property.contraction.acronym == statement.acronym:
+            if len(property.contraction.parameters) == len(statement.parameters):
+                copy_statement = property.expansion.copy()
+                for index in range(len(property.contraction.parameters)):
+                    copy_statement = copy_statement.replace(property.contraction.parameters[index],
+                                                            statement.parameters[index])
+                    child = MathTree(self, copy_statement)
+                    self.add_child(child)
+                    return True, "Property application successful", child
+            return False, "Something went wrong, different number of parameters"
+        return False, "Property must define the acronym of statement"
+
+
