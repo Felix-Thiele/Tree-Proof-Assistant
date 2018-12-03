@@ -61,7 +61,7 @@ class MathTree(TreeNode):
             self.equal = self.parent.equal
             self.abbreviations = self.parent.abbreviations
         # adjective
-        self.let_adjective.append(self.sentence.contraction.acronym)
+        self.let_adjective.append(self.sentence.contraction.acronym.char)
         if self.sentence.contraction.acronym not in self.abbreviations:
             self.abbreviations[self.sentence.contraction.acronym] = self.sentence
         self.let_adjective = list(set(self.let_adjective))
@@ -163,6 +163,20 @@ class MathTree(TreeNode):
             cur.add_child(child, "middle")
             return True, "Contradiction successful"
         return False, "statements not dual"
+
+    def twin_agreement(self, anc1):
+        if anc1.sentence == self.sentence:
+            cur = self
+            while len(cur.children) != 2:
+                if cur.has_parent():
+                    cur = cur.parent
+            if anc1.is_ancestor(cur):
+                child = MathTree(self, self.sentence)
+                cur.add_child(child, "middle")
+                return True, " successful"
+            else:
+                return False, "These nodes are not twins"
+        return False, "statements nto dual"
 
 
     # Definition Rule 3.3
@@ -270,12 +284,12 @@ class MathTree(TreeNode):
 
 
     def apply_property(self, property, statement):
-        if property.contraction.acronym == statement.acronym:
-            if len(property.contraction.parameters) == len(statement.parameters):
-                copy_statement = property.expansion.copy()
-                for index in range(len(property.contraction.parameters)):
-                    copy_statement = copy_statement.replace(property.contraction.parameters[index],
-                                                            statement.parameters[index])
+        if property.sentence.contraction.acronym == statement.sentence.acronym:
+            if len(property.sentence.contraction.parameters) == len(statement.sentence.parameters):
+                copy_statement = property.sentence.expansion.copy()
+                for index in range(len(property.sentence.contraction.parameters)):
+                    copy_statement = copy_statement.replace(property.sentence.contraction.parameters[index],
+                                                            statement.sentence.parameters[index])
                     child = MathTree(self, copy_statement)
                     self.add_child(child)
                     return True, "Property application successful", child

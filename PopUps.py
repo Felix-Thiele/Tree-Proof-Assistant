@@ -188,6 +188,51 @@ class Property:
     def return_statement(self):
         return self.inactive_var
 
+class Choice:
+    def __init__(self, parent):
+        top = self.top = Toplevel(parent)
+
+        self.inactive_var = ""
+
+        self.top.geometry('600x500+600+300')
+
+        self.definite = Label(top, text='Choose 2 different indefinite letters and 5 definite letters')
+        self.definite.place(x=180, y=20)
+
+        self.definite = Label(top, text='indefinite letters')
+        self.definite.place(x=250, y=50)
+
+        self.definite = Label(top, text='definite letters')
+        self.definite.place(x=250, y=130)
+
+        self.indef1_Entry = Entry(top)
+        self.indef1_Entry.place(x=200, y=70, width=90)
+        self.indef2_Entry = Entry(top)
+        self.indef2_Entry.place(x=300, y=70, width=90)
+
+        self.def1_Entry = Entry(top)
+        self.def1_Entry.place(x=50, y=150, width=90)
+        self.def2_Entry = Entry(top)
+        self.def2_Entry.place(x=150, y=150, width=90)
+        self.def3_Entry = Entry(top)
+        self.def3_Entry.place(x=250, y=150, width=90)
+        self.def4_Entry = Entry(top)
+        self.def4_Entry.place(x=350, y=150, width=90)
+        self.def5_Entry = Entry(top)
+        self.def5_Entry.place(x=450, y=150, width=90)
+
+
+
+        self.res = Label(top, text='')
+        self.res.place(x=150, y=200)
+
+    def replace(self):
+        self.inactive_var = self.var1_Entry.get()
+        self.top.destroy()
+
+    def return_statement(self):
+        return self.inactive_var
+
 
 class SaveDialog:
     def __init__(self, parent, tree_info, cur_file):

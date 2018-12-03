@@ -30,6 +30,8 @@ class Statement:
             self.parameters = ParseStr.readstr(substatements[-1])[1]
 
     def __eq__(self, other):
+        if other.__class__.__name__ != "Statement":
+            return False
         if self.acronym == other.acronym:
             if self.parameters == other.parameters:
                 return True
@@ -90,23 +92,27 @@ class Statement:
         mod_copy.presumptions = mod_presumptions
         return mod_copy
 
-    def check_admissible(self, node):
+    def check_admissible(self, node, new_prop=False):
         if self.presumptions == []:
-            return self.check_admissible_unquantified(node)
+            return self.check_admissible_unquantified(node, new_prop)
         else:
             return self.check_admissible_quantified(node)
 
-    def check_admissible_unquantified(self, node):
+    def check_admissible_unquantified(self, node, new_prop=False):
+        if not new_prop:
+            if self.acronym.char not in node.let_adjective:
+                if self.acronym.char != "=":
+                    return False
         for let in self.get_letters():
             if let not in node.let_definite:
                 return False
         return True
 
-    def check_admissible_quantified(self, node):
+    def check_admissible_quantified(self, node, new_prop):
         hypothesis = self.presumptions[0][1]
         conclusion = self.copy()
         conclusion.presumptions = conclusion.presumptions[1:]
-        if hypothesis.check_admissible(node) and conclusion.check_admissible(node):
+        if hypothesis.check_admissible(node, new_prop) and conclusion.check_admissible(node, new_prop):
             return True
         else:
             if not hypothesis.presumptions:
@@ -116,7 +122,7 @@ class Statement:
                         indef.append(let)
                 if len(indef) == 1:
                     conc = conclusion.replace(indef[0], node.let_definite[0])
-                    return conc.check_admissible(node)
+                    return conc.check_admissible(node, new_prop)
             return False
 
     def copy(self):

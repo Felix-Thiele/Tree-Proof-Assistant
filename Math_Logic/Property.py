@@ -26,7 +26,7 @@ class Property:
             if letter in node.let_definite:
                 return False
             copy_expansion = copy_expansion.replace(letter, first_def)
-        if copy_expansion.check_admissible(node):
+        if copy_expansion.check_admissible(node, new_prop=True):
             return True
         return False
 

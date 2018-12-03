@@ -19,7 +19,7 @@ class View(Tk):
         self.callback_width = callback_width
         [self.callback_save, self.callback_open] = save_open
         [self.callback_addition, self.callback_substitution, self.callback_dual_statement,
-         self.callback_definition, self.callback_deduction, self.callback_property] = Rules
+         self.callback_definition, self.callback_deduction, self.callback_property, self.callback_choice] = Rules
         self.callback_help = help
         self.callback_import = callback_import
 
@@ -64,16 +64,18 @@ class View(Tk):
         self._import.place(x=600, y=110, width=150)
         # syntax rules
         self.addition = Button(master=self, text="Addition", command=self.callback_addition)
-        self.addition.place(x=1150, y=20, width=150)
+        self.addition.place(x=950, y=20, width=150)
         self.elementary_substitution = Button(master=self, text="Elementary Substitution", command=self.callback_substitution)
-        self.elementary_substitution.place(x=1150, y=50, width=150)
+        self.elementary_substitution.place(x=1150, y=80, width=150)
         self.dual_statement = Button(master=self, text="Dual Statement", command=self.callback_dual_statement)
-        self.dual_statement.place(x=950, y=20, width=150)
+        self.dual_statement.place(x=950, y=50, width=150)
         self.definition = Button(master=self, text="Definition", command=self.callback_definition)
-        self.definition.place(x=950, y=50, width=150)
+        self.definition.place(x=1150, y=20, width=150)
         self.deduction = Button(master=self, text="Deduction", command=self.callback_deduction)
-        self.deduction.place(x=1150, y=80, width=150)
+        self.deduction.place(x=1150, y=50, width=150)
         self.deduction = Button(master=self, text="Property", command=self.callback_property)
+        self.deduction.place(x=950, y=80, width=150)
+        self.deduction = Button(master=self, text="Choice", command=self.callback_choice)
         self.deduction.place(x=1150, y=110, width=150)
 
 
@@ -113,7 +115,7 @@ class Controller(object):
                          [self.removeNode, self.removeSub],
                          self.width, [self.save, self.open],
                          [self.addition, self.substitution, self.dual_statement, self.definition,
-                          self.deduction, self.property], self.help, self._import)
+                          self.deduction, self.property, self.choice], self.help, self._import)
         self.tree = Tree.MathTree(None, "a=a", (0, 0))
         self.nodes = [self.tree]
         self.selected_node = self.tree
@@ -168,7 +170,7 @@ class Controller(object):
             if first.is_ancestor(second) or second.is_ancestor(first):
                 res = self.selected_node.contradiction(first, second)
             else:
-                res = first.Twin_Agreement(second)
+                res = first.twin_agreement(second)
             if res[0]:
                 self.view.Error.config(text=res[1])
         else:
@@ -223,22 +225,35 @@ class Controller(object):
         self.draw_tree()
 
     def property(self):
-        input_dialog = PopUps.Property(self.view)
-        self.view.wait_window(input_dialog.top)
-        prop_str = input_dialog.return_statement()
-        res = self.selected_node.property_addition(prop_str)
-        self.view.Error.config(text=res[1])
-        if res[0]:
-            self.nodes.append(res[2])
-            self.selected_node = res[2]
+        if len(self.secondary_nodes) == 0:
+            input_dialog = PopUps.Property(self.view)
+            self.view.wait_window(input_dialog.top)
+            prop_str = input_dialog.return_statement()
+            res = self.selected_node.property_addition(prop_str)
+            self.view.Error.config(text=res[1])
+            if res[0]:
+                self.nodes.append(res[2])
+                self.selected_node = res[2]
+        elif len(self.secondary_nodes) == 1:
+            res = self.selected_node.apply_property(self.secondary_nodes[0], self.selected_node)
+            if res[0]:
+                self.nodes.append(res[2])
+                self.selected_node = res[2]
         self.draw_tree()
+
+    def choice(self):
+        input_dialog = PopUps.Choice(self.view)
+        self.view.wait_window(input_dialog.top)
+        statement = input_dialog.return_statement()
+        return
+
 
     def add_child(self):
         if self.view.NodeTxt.get() == "":
             self.view.Error.config(text="A Leaf can not have an empty statement")
             return
         child = Tree.MathTree(self.selected_node, self.view.NodeTxt.get(), (0, 0), True)
-        res = self.selected_node.addChild(child, index=self.view.NodeIndex.get())
+        res = self.selected_node.add_child(child, index=self.view.NodeIndex.get())
 
         if res == None:
             self.nodes.append(child)
