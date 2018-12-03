@@ -195,6 +195,7 @@ class Choice:
         self.inactive_var = ""
 
         self.top.geometry('600x500+600+300')
+        self.included = [True, False, False, False, False, False, False]
 
         self.definite = Label(top, text='Choose 2 different indefinite letters and 5 definite letters')
         self.definite.place(x=180, y=20)
@@ -221,14 +222,98 @@ class Choice:
         self.def5_Entry = Entry(top)
         self.def5_Entry.place(x=450, y=150, width=90)
 
+        self.node1 = Button(top, text='Node 1', command=self.button1, bg="DeepSkyBlue2")
+        self.node1.place(x=50, y=200)
+        self.node2 = Button(top, text='Node 2', command=self.button2)
+        self.node2.place(x=50, y=230)
+        self.node3 = Button(top, text='Node 3', command=self.button3)
+        self.node3.place(x=50, y=260)
+        self.node4 = Button(top, text='Node 4', command=self.button4)
+        self.node4.place(x=50, y=290)
+        self.node5 = Button(top, text='Node 5', command=self.button5)
+        self.node5.place(x=50, y=320)
+        self.node6 = Button(top, text='Node 6', command=self.button6)
+        self.node6.place(x=50, y=350)
+        self.node7 = Button(top, text='Node 7', command=self.button7)
+        self.node7.place(x=50, y=380)
+
+        self.text1 = Label(top, text='f = f')
+        self.text1.place(x=190, y=200)
+        self.text2 = Label(top, text='f(g) = f')
+        self.text2.place(x=190, y=230)
+        self.text3 = Label(top, text='{g(e) != g} f(e) != f')
+        self.text3.place(x=190, y=260)
+        self.text4 = Label(top, text='{g(e) != g} {e(n) != e} f(n) != f')
+        self.text4.place(x=190, y=290)
+        self.text5 = Label(top, text='{f(e) != f} f(f(e)) != f')
+        self.text5.place(x=190, y=320)
+        self.text6 = Label(top, text='{f(e) = f} [e(n) != e] {g(n) != g} h(e(n)) = h')
+        self.text6.place(x=190, y=350)
+        self.text7 = Label(top, text='{f(e) != f} Aef(e)')
+        self.text7.place(x=190, y=380)
+
 
 
         self.res = Label(top, text='')
         self.res.place(x=150, y=200)
 
-    def replace(self):
-        self.inactive_var = self.var1_Entry.get()
-        self.top.destroy()
+    def button1(self):
+        if self.included[0]:
+            if self.included[1]:
+                self.node1.configure(bg="snow")
+                self.included[0] = False
+        else:
+            self.node1.configure(bg="DeepSkyBlue2")
+            self.included[0] = True
+
+    def button2(self):
+        if self.included[1]:
+            if self.included[0]:
+                self.node2.configure(bg="snow")
+                self.included[1] = False
+        else:
+            self.node2.configure(bg="DeepSkyBlue2")
+            self.included[1] = True
+
+    def button3(self):
+        if self.included[2]:
+            self.node3.configure(bg="snow")
+            self.included[2] = False
+        else:
+            self.node3.configure(bg="DeepSkyBlue2")
+            self.included[2] = True
+
+    def button4(self):
+        if self.included[3]:
+            self.node4.configure(bg="snow")
+            self.included[3] = False
+        else:
+            self.node4.configure(bg="DeepSkyBlue2")
+            self.included[3] = True
+
+    def button5(self):
+        if self.included[4]:
+            self.node5.configure(bg="snow")
+            self.included[4] = False
+        else:
+            self.node5.configure(bg="DeepSkyBlue2")
+            self.included[4] = True
+
+    def button6(self):
+        if self.included[5]:
+            self.node6.configure(bg="snow")
+            self.included[5] = False
+        else:
+            self.node6.configure(bg="DeepSkyBlue2")
+            self.included[5] = True
+
+    def button7(self):
+        if self.included[6]:
+            self.node7.configure(bg="snow")
+            self.included[6] = False
+        else:
+            self.node7.configure(bg="DeepSkyBlue2")
+            self.included[6] = True
 
     def return_statement(self):
         return self.inactive_var
