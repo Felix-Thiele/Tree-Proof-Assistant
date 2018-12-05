@@ -18,7 +18,7 @@ class Property:
 
     # syntax 4.5 (Property)
     def check_admissible(self, node):
-        if self.contraction.acronym not in node.let_adjective and self.contraction.acronym in node.let_active:
+        if self.contraction.acronym.char not in node.let_adjective and self.contraction.acronym.char in node.let_active:
             return False
         copy_expansion = self.expansion.copy()
         first_def = node.let_definite[0]

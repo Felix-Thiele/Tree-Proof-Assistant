@@ -242,10 +242,19 @@ class Controller(object):
         self.draw_tree()
 
     def choice(self):
+        if len(self.secondary_nodes) > 0:
+            node = self.secondary_nodes[0]
+        else:
+            node = self.selected_node
         input_dialog = PopUps.Choice(self.view)
         self.view.wait_window(input_dialog.top)
-        statement = input_dialog.return_statement()
-        return
+        info = input_dialog.return_info()
+        res = self.selected_node.choice(node, info[0], info[1])
+        if res[0]:
+            self.nodes += res[2]
+            self.selected_node = res[3]
+        self.view.Error.config(text=res[1])
+        self.draw_tree()
 
 
     def add_child(self):

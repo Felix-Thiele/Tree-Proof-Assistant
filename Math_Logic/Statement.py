@@ -84,8 +84,7 @@ class Statement:
     def replace(self, var1, var2):
         mod_copy = self.copy()
         for index in range(len(mod_copy.parameters)):
-            if mod_copy.parameters[index] == var1:
-                mod_copy.parameters[index] = var2
+            mod_copy.parameters[index] = mod_copy.parameters[index].replace(var1, var2)
         mod_presumptions = []
         for pre in mod_copy.presumptions:
             mod_presumptions.append((pre[0], pre[1].replace(var1, var2)))
@@ -108,7 +107,7 @@ class Statement:
                 return False
         return True
 
-    def check_admissible_quantified(self, node, new_prop):
+    def check_admissible_quantified(self, node, new_prop=False):
         hypothesis = self.presumptions[0][1]
         conclusion = self.copy()
         conclusion.presumptions = conclusion.presumptions[1:]

@@ -217,6 +217,10 @@ class MathTree(TreeNode):
 
 
     def Deduction(self, ancestor, hypothesis_ancestor):
+        if hypothesis_ancestor.sentence.presumptions > ancestor.sentence.presumptions:
+            temp = hypothesis_ancestor
+            hypothesis_ancestor = ancestor
+            ancestor = temp
         if len(ancestor.sentence.presumptions) > 0:
             hypothesis = ancestor.sentence.presumptions[0][1]
             hyp_quantifier = ancestor.sentence.presumptions[0][0]
@@ -267,7 +271,7 @@ class MathTree(TreeNode):
         if ParseStr.check_valid_prop_string(prop_str):
             property = Property(prop_str)
             if property.check_admissible(self):
-                if property.contraction.acronym in self.let_adjective:
+                if property.contraction.acronym.char in self.let_adjective:
                     if self.abbreviations[property.contraction.acronym].check_modified_copy(property):
                         child = MathTree(self, property)
                         self.add_child(child)
@@ -284,6 +288,14 @@ class MathTree(TreeNode):
 
 
     def apply_property(self, property, statement):
+        if property.__class__.__name__ == "Property" and statement.__class__.__name__ == "Statement":
+            pass
+        elif property.__class__.__name__ == "Statement" and statement.__class__.__name__ == "Property":
+            temp = property
+            property = statement
+            statement = temp
+        else:
+            return False, "One sentence must be a property, while the other is a statement"
         if property.sentence.contraction.acronym == statement.sentence.acronym:
             if len(property.sentence.contraction.parameters) == len(statement.sentence.parameters):
                 copy_statement = property.sentence.expansion.copy()
@@ -296,4 +308,112 @@ class MathTree(TreeNode):
             return False, "Something went wrong, different number of parameters"
         return False, "Property must define the acronym of statement"
 
+
+    # Choice 1 Rule 5.2
+
+
+    def choice(self, node, variables, additions):
+        # variables is a list of first the two indefinite, then the inactive and finally the 5 definite letters
+        # additions is a list of 7 boolean values, describing what nodes to add
+        if additions[0] or additions[1]:
+            if variables[0] not in self.let_active:
+                for i in range(1, 6):
+                    if variables[i] not in self.let_definite:
+                        return False, "A definite letter is not definite"
+
+                inactive = variables [0]
+                def1, def2, def3, def4, def5 = variables[1], variables[2], variables[3], variables[4], variables[5]
+                children = []
+
+                if len(node.sentence.parameters) < 2:
+                    return False
+                sentence1 = node.sentence.presumptions[0][1]
+                sentence2 = node.sentence.presumptions[1][1]
+                if node.sentence.presumptions[0][0] != "universal":
+                    return False, "hypothesis of ancestor must be universal"
+                if node.sentence.presumptions[1][0] != "existential":
+                    return False, "hypothesis of ancestor must be existential"
+                if sentence1.is_equality:
+                    if sentence1.parameters[0] == sentence1.parameters[1]:
+                        if len(sentence1.parameters[0].functions) == 0:
+                            indef1 = repr(sentence1.parameters[0])
+                        else:
+                            return False, "The Hypothesis needs to be a reflexive equality"
+                    else:
+                        return False, "The Hypothesis needs to be a reflexive equality"
+                else:
+                    return False, "The Hypothesis needs to be a reflexive equality"
+                if sentence2.is_equality:
+                    if sentence2.parameters[0] == sentence2.parameters[1]:
+                        if len(sentence2.parameters[0].functions) == 0:
+                            indef2 = repr(sentence2.parameters[0])
+                        else:
+                            return False, "The Hypothesis needs to be a reflexive equality"
+                    else:
+                        return False, "The Hypothesis needs to be a reflexive equality"
+                else:
+                    return False, "The Hypothesis needs to be a reflexive equality"
+
+                cur_node = self
+
+                if additions[0]:
+                    statement = Statement(str(inactive + "=" + inactive))
+                    child = MathTree(cur_node, statement)
+                    cur_node.add_child(child)
+                    children.append(child)
+                    cur_node = child
+
+                if additions[1]:
+                    statement = Statement(str(inactive + "(" + def1 + ") != " + inactive))
+                    child = MathTree(cur_node, statement)
+                    cur_node.add_child(child)
+                    children.append(child)
+                    cur_node = child
+
+                if additions[2]:
+                    statement = Statement(str("{"+def2+"("+indef1+")"+"}"+inactive + "(" + indef1 + ") != " + inactive))
+                    child = MathTree(cur_node, statement)
+                    cur_node.add_child(child)
+                    children.append(child)
+                    cur_node = child
+
+                if additions[3]:
+                    statement = Statement(str(
+                        "{"+def3+"("+indef1+")"+"!="+def3+"}"+"{"+indef1+"("+indef2+")"+"!="+indef1+"}"
+                        +inactive+"("+indef2+")"+"!="+inactive))
+                    child = MathTree(cur_node, statement)
+                    cur_node.add_child(child)
+                    children.append(child)
+                    cur_node = child
+
+                if additions[4]:
+                    statement = Statement(str(
+                        "{"+inactive+"("+indef1+")"+"!="+inactive+"}"
+                        +inactive+"("+inactive+"("+indef1+")"+")"+"!="+inactive))
+                    child = MathTree(cur_node, statement)
+                    cur_node.add_child(child)
+                    children.append(child)
+                    cur_node = child
+
+                if additions[5]:
+                    statement = Statement(str(
+                        "{"+inactive+"("+indef1+")"+"="+inactive+"}"+"["+indef1+"("+indef2+")"+"!="+indef1+"]"+"{"+
+                        def4+"("+indef2+")"+"!="+def4+"}"+def5+"("+indef1+"("+indef2+")"+")"+"="+def5))
+                    child = MathTree(cur_node, statement)
+                    cur_node.add_child(child)
+                    children.append(child)
+                    cur_node = child
+
+                if additions[6]:
+                    statement = Statement(str(
+                        "{"+inactive+"("+indef1+")"+"!="+inactive+"}"+"("+")"))
+                    child = MathTree(cur_node, statement)
+                    cur_node.add_child(child)
+                    children.append(child)
+                    cur_node = child
+
+                return True, "choice successful", children, cur_node
+
+            return False, "The inactive letter is active"
+        return False, "one of the first two nodes have to be added first"
 

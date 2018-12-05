@@ -192,24 +192,21 @@ class Choice:
     def __init__(self, parent):
         top = self.top = Toplevel(parent)
 
-        self.inactive_var = ""
-
         self.top.geometry('600x500+600+300')
         self.included = [True, False, False, False, False, False, False]
+        self.variables = []
 
         self.definite = Label(top, text='Choose 2 different indefinite letters and 5 definite letters')
         self.definite.place(x=180, y=20)
 
-        self.definite = Label(top, text='indefinite letters')
+        self.definite = Label(top, text='inactive letters')
         self.definite.place(x=250, y=50)
 
         self.definite = Label(top, text='definite letters')
         self.definite.place(x=250, y=130)
 
-        self.indef1_Entry = Entry(top)
-        self.indef1_Entry.place(x=200, y=70, width=90)
-        self.indef2_Entry = Entry(top)
-        self.indef2_Entry.place(x=300, y=70, width=90)
+        self.inactive1_Entry = Entry(top)
+        self.inactive1_Entry.place(x=200, y=70, width=90)
 
         self.def1_Entry = Entry(top)
         self.def1_Entry.place(x=50, y=150, width=90)
@@ -252,10 +249,8 @@ class Choice:
         self.text7 = Label(top, text='{f(e) != f} Aef(e)')
         self.text7.place(x=190, y=380)
 
-
-
-        self.res = Label(top, text='')
-        self.res.place(x=150, y=200)
+        self.done = Button(top, text='add', command=self.done)
+        self.done.place(x=150, y=400)
 
     def button1(self):
         if self.included[0]:
@@ -315,8 +310,13 @@ class Choice:
             self.node7.configure(bg="DeepSkyBlue2")
             self.included[6] = True
 
-    def return_statement(self):
-        return self.inactive_var
+    def done(self):
+        self.variables = [self.inactive1_Entry.get(), self.def1_Entry.get(), self.def2_Entry.get(), self.def3_Entry.get(),
+                          self.def4_Entry.get(), self.def5_Entry.get()]
+        self.top.destroy()
+
+    def return_info(self):
+        return self.variables, self.included
 
 
 class SaveDialog:
