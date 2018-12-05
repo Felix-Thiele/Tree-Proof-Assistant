@@ -356,9 +356,7 @@ class Controller(object):
         print("definite")
         print(self.selected_node.let_definite)
         print("equal")
-        print(self.selected_node.elem_equal)
-        print("inequal")
-        print(self.selected_node.elem_inequal)
+        print(self.selected_node.equal)
         self.draw_tree()
 
     def save(self):

@@ -364,14 +364,14 @@ class MathTree(TreeNode):
                     cur_node = child
 
                 if additions[1]:
-                    statement = Statement(str(inactive + "(" + def1 + ") != " + inactive))
+                    statement = Statement(str(inactive+"("+def1+") != " + inactive))
                     child = MathTree(cur_node, statement)
                     cur_node.add_child(child)
                     children.append(child)
                     cur_node = child
 
                 if additions[2]:
-                    statement = Statement(str("{"+def2+"("+indef1+")"+"}"+inactive + "(" + indef1 + ") != " + inactive))
+                    statement = Statement(str("{"+def2+"("+indef1+")"+"!="+def2+"}"+inactive + "(" + indef1 + ") != " + inactive))
                     child = MathTree(cur_node, statement)
                     cur_node.add_child(child)
                     children.append(child)
@@ -405,8 +405,11 @@ class MathTree(TreeNode):
                     cur_node = child
 
                 if additions[6]:
+                    anc_statement = node.sentence
+                    anc_statement.presumptions = anc_statement.presumptions[2:]
+                    anc_statement = anc_statement.replace(Term(indef2), Term(inactive+"("+indef1+")"))
                     statement = Statement(str(
-                        "{"+inactive+"("+indef1+")"+"!="+inactive+"}"+"("+")"))
+                        "{"+inactive+"("+indef1+")"+"!="+inactive+"}"+repr(anc_statement)))
                     child = MathTree(cur_node, statement)
                     cur_node.add_child(child)
                     children.append(child)

@@ -16,18 +16,19 @@ quantifer type and the statement.
 
 class Statement:
     def __init__(self, statestr):
-            self.acronym = None
-            self.parameters = []
-            self.presumptions = []
+        statestr = statestr.replace(" ", "")
+        self.acronym = None
+        self.parameters = []
+        self.presumptions = []
 
-            # the statementstr is split into its quantified presumptions and the claim
-            substatements, functions = ParseStr.split_presumptions(statestr)
-            for statement, function in zip(substatements[:-1], functions[:-1]):
-                self.presumptions.append((function, Statement(statement)))
-            # readstr returns the acronym as an acronym object, and all the parameters as term objects
-            # of a unquantified str
-            self.acronym = ParseStr.readstr(substatements[-1])[0]
-            self.parameters = ParseStr.readstr(substatements[-1])[1]
+        # the statementstr is split into its quantified presumptions and the claim
+        substatements, functions = ParseStr.split_presumptions(statestr)
+        for statement, function in zip(substatements[:-1], functions[:-1]):
+            self.presumptions.append((function, Statement(statement)))
+        # readstr returns the acronym as an acronym object, and all the parameters as term objects
+        # of a unquantified str
+        self.acronym = ParseStr.readstr(substatements[-1])[0]
+        self.parameters = ParseStr.readstr(substatements[-1])[1]
 
     def __eq__(self, other):
         if other.__class__.__name__ != "Statement":
