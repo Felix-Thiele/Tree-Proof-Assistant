@@ -337,6 +337,8 @@ class MathTree(TreeNode):
                     if sentence1.parameters[0] == sentence1.parameters[1]:
                         if len(sentence1.parameters[0].functions) == 0:
                             indef1 = repr(sentence1.parameters[0])
+                            if indef1 in node.let_definite:
+                                return False, "Indefinite Letter id definite"
                         else:
                             return False, "The Hypothesis needs to be a reflexive equality"
                     else:
@@ -347,6 +349,8 @@ class MathTree(TreeNode):
                     if sentence2.parameters[0] == sentence2.parameters[1]:
                         if len(sentence2.parameters[0].functions) == 0:
                             indef2 = repr(sentence2.parameters[0])
+                            if indef2 in node.let_definite:
+                                return False, "Indefinite Letter id definite"
                         else:
                             return False, "The Hypothesis needs to be a reflexive equality"
                     else:
