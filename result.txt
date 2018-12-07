@@ -1,0 +1,1 @@
+\node{a = a}child { node {a = a}child { node {f = f}child { node {[t = t] t = a} }child { node {{t = t} t != a} }}}

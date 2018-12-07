@@ -1,8 +1,8 @@
 from tkinter import *
+from tkinter import messagebox
 import pickle
 import os
-from os import listdir
-from os.path import isfile, join
+import sqlite3
 
 
 class ElementaryAddition:
@@ -324,16 +324,21 @@ class SaveDialog:
         top = self.top = Toplevel(parent)
 
         self.top.geometry('300x300+600+400')
-        self.filename = None
+        self.filename = ""
         self.myLabel = Label(top, text='Enter the name of the tree below')
         if cur_file != None:
             self.myLabel.config(text=cur_file)
         self.myLabel.pack()
 
-        self.myEntryBox = Entry(top)
-        self.myEntryBox.pack()
+        #sql
+        self.conn = sqlite3.connect('TreeTheoreeData.db')
+        self.c = self.conn.cursor()
+        self.c.execute('CREATE TABLE IF NOT EXISTS trees (name text, tree text)')
 
-        self.mySubmitButton = Button(top, text='Save', command=self.send)
+        self.filenameentry = Entry(top)
+        self.filenameentry.pack()
+
+        self.mySubmitButton = Button(top, text='Save', command=self.save)
         self.mySubmitButton.pack()
 
         self.tikz = Button(top, text='Compile to tikz', command=self.tikz)
@@ -342,28 +347,46 @@ class SaveDialog:
         self.forest.pack()
         self.qtree = Button(top, text='Compile to Qtree Format', command=self.qtree)
         self.qtree.pack()
-        self.tree_info = tree_info
+        self.tree = tree_info
 
-    def send(self):
-        self.filename = self.myEntryBox.get()
+    def save(self):
+        self.filename = self.filenameentry.get()
+        if self.filename == "" or self.filename == "enter a name":
+            self.filenameentry.insert(0, "enter a name")
+        else:
+            self.c.execute('SELECT tree FROM trees WHERE name = ?', (self.filename,))
+            res = self.c.fetchall()
+            if res == []:
+                txt = pickle.dumps(self.tree)
+                self.c.execute("INSERT INTO trees VALUES (?, ?)", (self.filename, txt))
+                self.conn.commit()
+                self.c.close()
+                self.conn.close()
+            else:
+                result = messagebox.askokcancel("Python","Would you like to replace this file?")
+                if result:
+                    self.c.execute("DELETE FROM trees WHERE name=?", (self.filename,))
+                    self.conn.commit()
+                    txt = pickle.dumps(self.tree)
+                    self.c.execute("INSERT INTO trees VALUES (?, ?)", (self.filename, txt))
+                    self.conn.commit()
+                    self.c.close()
+                    self.conn.close()
+                self.top.destroy()
 
-        with open("TreeLibrary/" + self.filename + '.pickle', 'wb') as handle:
-            pickle.dump(self.tree_info, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-        self.top.destroy()
 
     def tikz(self):
-        tikz = self.tree.Tex_Compile_Tikz()
+        tikz = self.tree[0].Tex_Compile_Tikz()
         with open("result.txt", 'w') as result:
             result.write(tikz)
 
     def forest(self):
-        forest = self.tree.Tex_Compile_Forest()
+        forest = self.tree[0].Tex_Compile_Forest()
         with open("result.txt", 'w') as result:
             result.write(forest)
 
     def qtree(self):
-        qtree = self.tree.Tex_Compile_Qtree()
+        qtree = self.tree[0].Tex_Compile_Qtree()
         with open("result.txt", 'w') as result:
             result.write(qtree)
 
@@ -376,23 +399,28 @@ class OpenDialog:
         top = self.top = Toplevel(parent)
 
         self.top.geometry('600x300+600+400')
-        self.tree_info = None
+        self.tree = None
+
+        # sql
+        self.conn = sqlite3.connect('TreeTheoreeData.db')
+        self.c = self.conn.cursor()
 
         self.myLabel = Label(top, text='Choose a tree below')
         self.myLabel.pack()
-        self.filename = "You have no saved trees"
+        self.filename = ""
         self.var = StringVar(top)
         self.var.set('Choose a tree')
 
-        choices = [f[:-7] for f in listdir("TreeLibrary/") if isfile(join("TreeLibrary/", f))]
+        self.c.execute('SELECT name FROM trees')
+        choices = self.c.fetchall()
         if not choices:
             choices = ["You have no saved trees"]
 
-        self.option = OptionMenu(top, self.var, *choices)
+        self.option = OptionMenu(top, self.var, command=self.update, *choices)
         self.option.pack(padx=10, pady=10)
 
-        self.myEntryBox = Entry(top)
-        self.myEntryBox.pack()
+        self.filenameentry = Entry(top)
+        self.filenameentry.pack()
 
         self.mySubmitButton = Button(top, text='Open', command=self.open)
         self.mySubmitButton.pack()
@@ -400,20 +428,21 @@ class OpenDialog:
         self.mySubmitButton.pack()
 
     def open(self):
-        filename = self.var.get()
-        if self.var.get() != "TreeLibrary/Choose a tree.pickle" and self.var.get() != "You have no saved trees":
-            print("TreeLibrary/" + filename + ".pickle")
-            with open("TreeLibrary/" + str(filename) + ".pickle", 'rb') as handle:
-                tree_info = pickle.load(handle)
-            self.tree_info = tree_info
+        self.filename = self.filenameentry.get()
+        self.c.execute('SELECT tree FROM trees WHERE name = ?', (self.filename,))
+        self.tree = self.c.fetchall()
+
         self.top.destroy()
 
     def delete(self):
         filename = self.var.get()
         os.remove("TreeLibrary/" + str(filename) + ".pickle")
 
+    def update(self, pick):
+        self.filenameentry.insert(0, pick)
+
     def returntree(self):
-        return self.tree_info, self.var.get()
+        return pickle.loads(self.tree[0][0]), self.filename
 
 
 class _Import:

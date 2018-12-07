@@ -424,3 +424,66 @@ class MathTree(TreeNode):
             return False, "The inactive letter is active"
         return False, "one of the first two nodes have to be added first"
 
+    def convert_text(self):
+        def childtree(child):
+            if len(child.children) == 0:
+                return "{[(" + repr(child.sentence) + ")]}"
+            else:
+                str = "{[( {[(" + repr(child.sentence) + ")]}"
+                for subchild in reversed(child.children):
+                    str += childtree(subchild)
+                str += ")]}"
+                return str
+        if len(self.children) == 0:
+            return str
+        return str+childtree(self)
+
+    def tex_compile_tikz(self):
+        str = ""
+        str += "\\node{"+repr(self.sentence)+"}"
+        def childtree(child):
+            if len(child.children) == 0:
+                return "child { node {" + repr(child.sentence) + "} }"
+            else:
+                str = "child { node {" + repr(child.sentence) + "}"
+                for subchild in reversed(child.children):
+                    str += childtree(subchild)
+                str += "}"
+                return str
+        if len(self.children) == 0:
+            return str
+        return str+childtree(self)
+
+    def tex_compile_forest(self):
+        str = ""
+        str += "\\begin{forest} squared/.style={rectangle,draw}"
+
+        def childtree(child):
+            if len(child.children) == 0:
+                return "[" + repr(child.sentence) + ", squared]"
+            else:
+                str = "[" + repr(child.sentence) + ", squared"
+                for subchild in reversed(child.children):
+                    str += childtree(subchild)
+                str += "]"
+                return str
+
+        if len(self.children) == 0:
+            return str + "\\end{forest}"
+        return str + childtree(self) + "\\end{forest}"
+
+    def tex_compile_qtree(self):
+        str = ""
+        str += "\\Tree "
+        box_width = "3.0"
+        def childtree(child):
+            if len(child.children) == 0:
+                return "[. " + "\\framebox[" + box_width + "\width]{" + repr(child.sentence) + "} " + " ]"
+            else:
+                str = "[. " + "\\framebox[" + box_width + "\width]{" + repr(child.sentence)+ "} "
+                for subchild in reversed(child.children):
+                    str += childtree(subchild)
+                str += "]"
+                return str
+
+        return str + childtree(self)

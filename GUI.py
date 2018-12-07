@@ -285,7 +285,7 @@ class Controller(object):
                     child.parent = self.secondary_nodes[0].parent
                     self.secondary_nodes[0].parent.children.append(child)
             else:
-                self.view.Error.config(text = "There are more than 4 children")
+                self.view.Error.config(text="There are more than 4 children")
             self.secondary_nodes[0] = self.secondary_nodes[0].parent
         self.draw_tree()
 
@@ -371,14 +371,14 @@ class Controller(object):
     def open(self):
         input_dialog = PopUps.OpenDialog(self.view)
         self.view.wait_window(input_dialog.top)
-        tree_info = input_dialog.returntree()[0]
-        if tree_info != None:
-            self.tree = tree_info[0]
-            self.selected_node = tree_info[1]
-            self.secondary_nodes = tree_info[2]
-            self.nodes = tree_info[3]
-            self.view.FileName.config(text="Filename : " + input_dialog.returntree()[1])
-            self.filename = input_dialog.returntree()[1]
+        tree = input_dialog.returntree()
+        if tree != None:
+            self.tree = tree[0][0]
+            self.selected_node = tree[0][1]
+            self.secondary_nodes = tree[0][2]
+            self.nodes = tree[0][3]
+            self.view.FileName.config(text="Filename : " + tree[1])
+            self.filename = tree[1]
         self.draw_tree()
 
 
