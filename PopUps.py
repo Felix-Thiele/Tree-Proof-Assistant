@@ -192,127 +192,98 @@ class Choice:
     def __init__(self, parent):
         top = self.top = Toplevel(parent)
 
-        self.top.geometry('600x500+600+300')
-        self.included = [True, False, False, False, False, False, False]
+        self.top.geometry('750x550+500+200')
+        self.included = [True, False, False, False, False, False, False, False, False, False, False]
         self.variables = []
 
-        self.definite = Label(top, text='Choose 2 different indefinite letters and 5 definite letters')
-        self.definite.place(x=180, y=20)
+        self.description = Label(top, text='Choose 2 different indefinite letters and 6 definite letters')
+        self.description.place(x=180, y=20)
 
-        self.definite = Label(top, text='inactive letters')
-        self.definite.place(x=250, y=50)
+        self.inactive_label = Label(top, text='inactive letters')
+        self.inactive_label.place(x=250, y=50)
 
-        self.definite = Label(top, text='definite letters')
-        self.definite.place(x=250, y=130)
+        self.definite_label = Label(top, text='definite letters')
+        self.definite_label.place(x=250, y=100)
 
         self.inactive1_Entry = Entry(top)
-        self.inactive1_Entry.place(x=200, y=70, width=90)
+        self.inactive1_Entry.place(x=250, y=70, width=90)
 
         self.def1_Entry = Entry(top)
-        self.def1_Entry.place(x=50, y=150, width=90)
+        self.def1_Entry.place(x=10, y=120, width=90)
         self.def2_Entry = Entry(top)
-        self.def2_Entry.place(x=150, y=150, width=90)
+        self.def2_Entry.place(x=110, y=120, width=90)
         self.def3_Entry = Entry(top)
-        self.def3_Entry.place(x=250, y=150, width=90)
+        self.def3_Entry.place(x=210, y=120, width=90)
         self.def4_Entry = Entry(top)
-        self.def4_Entry.place(x=350, y=150, width=90)
+        self.def4_Entry.place(x=310, y=120, width=90)
         self.def5_Entry = Entry(top)
-        self.def5_Entry.place(x=450, y=150, width=90)
+        self.def5_Entry.place(x=410, y=120, width=90)
+        self.def6_Entry = Entry(top)
+        self.def6_Entry.place(x=510, y=120, width=90)
 
-        self.node1 = Button(top, text='Node 1', command=self.button1, bg="DeepSkyBlue2")
-        self.node1.place(x=50, y=200)
-        self.node2 = Button(top, text='Node 2', command=self.button2)
-        self.node2.place(x=50, y=230)
-        self.node3 = Button(top, text='Node 3', command=self.button3)
-        self.node3.place(x=50, y=260)
-        self.node4 = Button(top, text='Node 4', command=self.button4)
-        self.node4.place(x=50, y=290)
-        self.node5 = Button(top, text='Node 5', command=self.button5)
-        self.node5.place(x=50, y=320)
-        self.node6 = Button(top, text='Node 6', command=self.button6)
-        self.node6.place(x=50, y=350)
-        self.node7 = Button(top, text='Node 7', command=self.button7)
-        self.node7.place(x=50, y=380)
+        self.node1 = Button(top, text='Node 1', bg="DeepSkyBlue2")
+        self.node1.place(x=50, y=170)
+        self.node2 = Button(top, text='Node 2', command=lambda: self.button(0))
+        self.node2.place(x=50, y=200)
+        self.node3 = Button(top, text='Node 3', command=lambda: self.button(1))
+        self.node3.place(x=50, y=230)
+        self.node4 = Button(top, text='Node 4', command=lambda: self.button(2))
+        self.node4.place(x=50, y=260)
+        self.node5 = Button(top, text='Node 5', command=lambda: self.button(3))
+        self.node5.place(x=50, y=290)
+        self.node6 = Button(top, text='Node 6', command=lambda: self.button(4))
+        self.node6.place(x=50, y=320)
+        self.node7 = Button(top, text='Node 7', command=lambda: self.button(5))
+        self.node7.place(x=50, y=350)
+        self.node8 = Button(top, text='Node 8', command=lambda: self.button(6))
+        self.node8.place(x=50, y=380)
+        self.node9 = Button(top, text='Node 9', command=lambda: self.button(7))
+        self.node9.place(x=50, y=410)
+        self.node10 = Button(top, text='Node 10', command=lambda: self.button(8))
+        self.node10.place(x=50, y=440)
+        self.node11 = Button(top, text='Node 11', command=lambda: self.button(9))
+        self.node11.place(x=50, y=470)
 
-        self.text1 = Label(top, text='f = f')
-        self.text1.place(x=190, y=200)
-        self.text2 = Label(top, text='f(g) = f')
-        self.text2.place(x=190, y=230)
-        self.text3 = Label(top, text='{g(e) != g} f(e) != f')
-        self.text3.place(x=190, y=260)
-        self.text4 = Label(top, text='{g(e) != g} {e(n) != e} f(n) != f')
-        self.text4.place(x=190, y=290)
-        self.text5 = Label(top, text='{f(e) != f} f(f(e)) != f')
-        self.text5.place(x=190, y=320)
-        self.text6 = Label(top, text='{f(e) = f} [e(n) != e] {g(n) != g} h(e(n)) = h')
-        self.text6.place(x=190, y=350)
-        self.text7 = Label(top, text='{f(e) != f} Aef(e)')
-        self.text7.place(x=190, y=380)
+        self.text1 = Label(top, text='inactive = inactive')
+        self.text1.place(x=190, y=170)
+        self.text2 = Label(top, text='{inactive(indef1) != inactive} mod_anc_conc')
+        self.text2.place(x=190, y=200)
+        self.text3 = Label(top, text='{inactive(indef1) != inactive} mod_anc_subconc')
+        self.text3.place(x=190, y=230)
+        self.text4 = Label(top, text='{inactive(indef1) != inactive} anc_hyp')
+        self.text4.place(x=190, y=260)
+        self.text5 = Label(top, text='inactive(indef1) != inactive')
+        self.text5.place(x=190, y=290)
+        self.text6 = Label(top, text='{def1(indef1) != def1}inactive(indef1) != inactive')
+        self.text6.place(x=190, y=320)
+        self.text7 = Label(top, text='{def3(indef1) != def3}{indef1(indef2) != indef1}inactive(indef2) != inactive')
+        self.text7.place(x=190, y=350)
+        self.text8 = Label(top, text='{inactive(indef1) != inactive} inactive(indef1)(inactive) != inactive(indef1)')
+        self.text8.place(x=190, y=380)
+        self.text9 = Label(top, text='{inactive(indef1) != inactive}[indef1(indef2) != indef1]{def4(indef2) != def4}def5(indef1(indef2))!= def5')
+        self.text9.place(x=190, y=410)
+        self.text10 = Label(top, text='{anc_hyp}inactive(indef1) != inactive')
+        self.text10.place(x=190, y=440)
+        self.text11 = Label(top, text='anc.replace(indef2, inactive(indef1))')
+        self.text11.place(x=190, y=470)
 
         self.done = Button(top, text='add', command=self.done)
-        self.done.place(x=150, y=400)
+        self.done.place(x=150, y=500)
 
-    def button1(self):
-        if self.included[0]:
-            if self.included[1]:
-                self.node1.configure(bg="snow")
-                self.included[0] = False
+    def button(self, nr):
+        node = [self.node2, self.node3, self.node4, self.node5, self.node6,
+                    self.node7, self.node8, self.node9, self.node10, self.node11][nr]
+        if self.included[nr+1]:
+            node.configure(bg="snow")
+            self.included[nr+1] = False
         else:
-            self.node1.configure(bg="DeepSkyBlue2")
-            self.included[0] = True
+            node.configure(bg="DeepSkyBlue2")
+            self.included[nr+1] = True
 
-    def button2(self):
-        if self.included[1]:
-            if self.included[0]:
-                self.node2.configure(bg="snow")
-                self.included[1] = False
-        else:
-            self.node2.configure(bg="DeepSkyBlue2")
-            self.included[1] = True
-
-    def button3(self):
-        if self.included[2]:
-            self.node3.configure(bg="snow")
-            self.included[2] = False
-        else:
-            self.node3.configure(bg="DeepSkyBlue2")
-            self.included[2] = True
-
-    def button4(self):
-        if self.included[3]:
-            self.node4.configure(bg="snow")
-            self.included[3] = False
-        else:
-            self.node4.configure(bg="DeepSkyBlue2")
-            self.included[3] = True
-
-    def button5(self):
-        if self.included[4]:
-            self.node5.configure(bg="snow")
-            self.included[4] = False
-        else:
-            self.node5.configure(bg="DeepSkyBlue2")
-            self.included[4] = True
-
-    def button6(self):
-        if self.included[5]:
-            self.node6.configure(bg="snow")
-            self.included[5] = False
-        else:
-            self.node6.configure(bg="DeepSkyBlue2")
-            self.included[5] = True
-
-    def button7(self):
-        if self.included[6]:
-            self.node7.configure(bg="snow")
-            self.included[6] = False
-        else:
-            self.node7.configure(bg="DeepSkyBlue2")
-            self.included[6] = True
 
     def done(self):
         self.variables = [self.inactive1_Entry.get(), self.def1_Entry.get(), self.def2_Entry.get(), self.def3_Entry.get(),
-                          self.def4_Entry.get(), self.def5_Entry.get()]
+                          self.def4_Entry.get(), self.def5_Entry.get(), self.def6_Entry.get()]
         self.top.destroy()
 
     def return_info(self):
@@ -363,7 +334,7 @@ class SaveDialog:
                 self.c.close()
                 self.conn.close()
             else:
-                result = messagebox.askokcancel("Python","Would you like to replace this file?")
+                result = messagebox.askokcancel("Python", "Would you like to replace this file?")
                 if result:
                     self.c.execute("DELETE FROM trees WHERE name=?", (self.filename,))
                     self.conn.commit()
@@ -431,12 +402,17 @@ class OpenDialog:
         self.filename = self.filenameentry.get()
         self.c.execute('SELECT tree FROM trees WHERE name = ?', (self.filename,))
         self.tree = self.c.fetchall()
-
+        self.c.close()
+        self.conn.close()
         self.top.destroy()
 
     def delete(self):
-        filename = self.var.get()
-        os.remove("TreeLibrary/" + str(filename) + ".pickle")
+        self.filename = self.filenameentry.get()
+        self.c.execute("DELETE FROM trees WHERE name=?", (self.filename,))
+        self.conn.commit()
+        self.c.close()
+        self.conn.close()
+        self.top.destroy()
 
     def update(self, pick):
         self.filenameentry.insert(0, pick)

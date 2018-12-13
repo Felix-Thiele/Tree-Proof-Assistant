@@ -312,7 +312,7 @@ class MathTree(TreeNode):
     # Choice 1 Rule 5.2
 
 
-    def choice(self, node, variables, additions):
+    def choice(self, node, variables, additions, secondnode=None):
         # variables is a list of first the two indefinite, then the inactive and finally the 5 definite letters
         # additions is a list of 7 boolean values, describing what nodes to add
         if additions[0] or additions[1]:
@@ -321,42 +321,25 @@ class MathTree(TreeNode):
                     if variables[i] not in self.let_definite:
                         return False, "A definite letter is not definite"
 
-                inactive = variables [0]
-                def1, def2, def3, def4, def5 = variables[1], variables[2], variables[3], variables[4], variables[5]
+                inactive = variables[0]
+                def1, def2, def3, def4, def5, def6 = \
+                    variables[1], variables[2], variables[3], variables[4], variables[5], variables[6]
                 children = []
 
                 if len(node.sentence.parameters) < 2:
-                    return False
-                sentence1 = node.sentence.presumptions[0][1]
-                sentence2 = node.sentence.presumptions[1][1]
-                if node.sentence.presumptions[0][0] != "universal":
-                    return False, "hypothesis of ancestor must be universal"
-                if node.sentence.presumptions[1][0] != "existential":
-                    return False, "hypothesis of ancestor must be existential"
-                if sentence1.is_equality:
-                    if sentence1.parameters[0] == sentence1.parameters[1]:
-                        if len(sentence1.parameters[0].functions) == 0:
-                            indef1 = repr(sentence1.parameters[0])
-                            if indef1 in node.let_definite:
-                                return False, "Indefinite Letter id definite"
-                        else:
-                            return False, "The Hypothesis needs to be a reflexive equality"
-                    else:
-                        return False, "The Hypothesis needs to be a reflexive equality"
-                else:
-                    return False, "The Hypothesis needs to be a reflexive equality"
-                if sentence2.is_equality:
-                    if sentence2.parameters[0] == sentence2.parameters[1]:
-                        if len(sentence2.parameters[0].functions) == 0:
-                            indef2 = repr(sentence2.parameters[0])
-                            if indef2 in node.let_definite:
-                                return False, "Indefinite Letter id definite"
-                        else:
-                            return False, "The Hypothesis needs to be a reflexive equality"
-                    else:
-                        return False, "The Hypothesis needs to be a reflexive equality"
-                else:
-                    return False, "The Hypothesis needs to be a reflexive equality"
+                    return False, "Non-valid ancestor"
+                sentence1 = node.sentence.presumptions[0]
+                sentence2 = node.sentence.presumptions[1]
+                for index, hypothesis in enumerate([sentence1, sentence2]):
+                    if hypothesis[0] != ["universal", "existential"][index]:
+                        return False, "Non-Valid first ancestor"
+                    if hypothesis[1].presumptions != []:
+                        return False, "Non-Valid first ancestor"
+                sentence1, sentence2 = sentence1[1], sentence2[1]
+                indef1 = repr(sentence1.get_first_indefinite(self))
+                indef2 = repr(sentence2.get_first_indefinite(self))
+                if indef1 == None or indef2 == None:
+                    return False, "Non-Valid first ancestor"
 
                 cur_node = self
 
@@ -366,60 +349,104 @@ class MathTree(TreeNode):
                     cur_node.add_child(child)
                     children.append(child)
                     cur_node = child
-
+                # first statement
                 if additions[1]:
-                    statement = Statement(str(inactive+"("+def1+") != " + inactive))
+                    copy = node.sentence.copy()
+                    copy.presumptions = copy.presumptions[1:]
+                    statement = Statement(str("{"+inactive + "(" + indef1 + ")" + "!=" + inactive + "}" + repr(copy)))
                     child = MathTree(cur_node, statement)
                     cur_node.add_child(child)
                     children.append(child)
                     cur_node = child
 
                 if additions[2]:
-                    statement = Statement(str("{"+def2+"("+indef1+")"+"!="+def2+"}"+inactive + "(" + indef1 + ") != " + inactive))
+                    copy = node.sentence.copy()
+                    copy.presumptions = copy.presumptions[2:]
+                    statement = Statement(str("{"+inactive + "(" + indef1 + ")" + "!=" + inactive + "}" + repr(copy)))
                     child = MathTree(cur_node, statement)
                     cur_node.add_child(child)
                     children.append(child)
                     cur_node = child
-
+                # second statement
                 if additions[3]:
-                    statement = Statement(str(
-                        "{"+def3+"("+indef1+")"+"!="+def3+"}"+"{"+indef1+"("+indef2+")"+"!="+indef1+"}"
-                        +inactive+"("+indef2+")"+"!="+inactive))
+                    statement = Statement(str("{"+inactive+"(" + indef1+")" + "!=" + inactive + "}" + repr(sentence1)))
                     child = MathTree(cur_node, statement)
                     cur_node.add_child(child)
                     children.append(child)
                     cur_node = child
 
-                if additions[4]:
-                    statement = Statement(str(
-                        "{"+inactive+"("+indef1+")"+"!="+inactive+"}"
-                        +inactive+"("+inactive+"("+indef1+")"+")"+"!="+inactive))
-                    child = MathTree(cur_node, statement)
-                    cur_node.add_child(child)
-                    children.append(child)
-                    cur_node = child
+                print(sentence1.is_equality())
+                if sentence1.is_equality() and sentence1.parameters[0] == sentence1.parameters[1]:
 
-                if additions[5]:
-                    statement = Statement(str(
-                        "{"+inactive+"("+indef1+")"+"="+inactive+"}"+"["+indef1+"("+indef2+")"+"!="+indef1+"]"+"{"+
-                        def4+"("+indef2+")"+"!="+def4+"}"+def5+"("+indef1+"("+indef2+")"+")"+"="+def5))
-                    child = MathTree(cur_node, statement)
-                    cur_node.add_child(child)
-                    children.append(child)
-                    cur_node = child
+                    # third statement
+                    if additions[4]:
+                        statement = Statement(str(inactive+"(" + indef1+")" + "!=" + inactive))
+                        child = MathTree(cur_node, statement)
+                        cur_node.add_child(child)
+                        children.append(child)
+                        cur_node = child
 
-                if additions[6]:
-                    anc_statement = node.sentence
-                    anc_statement.presumptions = anc_statement.presumptions[2:]
-                    anc_statement = anc_statement.replace(Term(indef2), Term(inactive+"("+indef1+")"))
-                    statement = Statement(str(
-                        "{"+inactive+"("+indef1+")"+"!="+inactive+"}"+repr(anc_statement)))
-                    child = MathTree(cur_node, statement)
-                    cur_node.add_child(child)
-                    children.append(child)
-                    cur_node = child
+                    # fourth statement
+                    if additions[5]:
+                        statement = Statement(str("{"+def1+"(" + indef1+")" + "!=" + def1+"}"
+                                                  +inactive+"(" + indef1+")" + "!=" + inactive))
+                        child = MathTree(cur_node, statement)
+                        cur_node.add_child(child)
+                        children.append(child)
+                        cur_node = child
 
-                return True, "choice successful", children, cur_node
+                    # fifth statement
+                    if additions[6]:
+                        statement = Statement(str("{"+def3+"(" + indef1+")" + "!=" + def3+"}"
+                                                  + "{"+indef1+"(" + indef2+")" + "!=" + indef1+"}"
+                                                  + inactive+"(" + indef2+")" + "!=" + inactive))
+                        child = MathTree(cur_node, statement)
+                        cur_node.add_child(child)
+                        children.append(child)
+                        cur_node = child
+
+                    # sixth statement
+                    if additions[7]:
+                        statement = Statement(str("{" + inactive + "(" + indef1 + ")" + "!=" + inactive + "}"
+                                                  + inactive + "(" + indef1 + ")" + "(" + inactive + ")"
+                                                  + "!=" + inactive + "(" + indef1 + ")"))
+                        child = MathTree(cur_node, statement)
+                        cur_node.add_child(child)
+                        children.append(child)
+                        cur_node = child
+
+                    # seventh statement
+                    if additions[8]:
+                        statement = Statement(str("{"+inactive+"("+indef1+")!="+inactive+"}"+"["+indef1+"("+indef2+")!="
+                                                  +indef1+"]"+"{"+def4+"("+indef2+")!="+def4+"}"
+                                                  +def5+"("+indef1+"("+indef2+")"+")!="+def5))
+                        child = MathTree(cur_node, statement)
+                        cur_node.add_child(child)
+                        children.append(child)
+                        cur_node = child
+
+                    if secondnode:
+                        anc_sent = secondnode.sentence
+                        if len(anc_sent.presumptions) > 1:
+                            pre1 = anc_sent.presumptions[0][1].replace(def1, def3)
+
+                        # eighth statement
+                        if additions[9]:
+                            statement = Statement(str("{"+sentence1+"}"+inactive+"("+indef1+") != " +inactive))
+                            child = MathTree(cur_node, statement)
+                            cur_node.add_child(child)
+                            children.append(child)
+                            cur_node = child
+
+                        # ninth statement
+                        if additions[10]:
+                            statement = node.sentence.replace(indef2, Term(str(inactive+"("+indef1+")")))
+                            child = MathTree(cur_node, statement)
+                            cur_node.add_child(child)
+                            children.append(child)
+                            cur_node = child
+
+                return True, "Choice succesful", children, cur_node
 
             return False, "The inactive letter is active"
         return False, "one of the first two nodes have to be added first"
