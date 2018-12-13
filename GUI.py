@@ -7,20 +7,19 @@ import PopUps
 
 
 class View(Tk):
-    def __init__(self, callback_add, callback_mouse, callback_second,
+    def __init__(self, callback_mouse, callback_second,
                  callback_remove, callback_width, save_open, Rules, help, callback_import):
         Tk.__init__(self)
-        self.callback_add = callback_add
         self.callback_click = callback_mouse[0]
         self.callback_doubleclick = callback_mouse[2]
         self.callback_sec = callback_second
         self.callback_mousewheel = callback_mouse[1]
-        [self.callback_removeNode, self.callback_removeSub] = callback_remove
+        self.callback_removeSub = callback_remove
         self.callback_width = callback_width
         [self.callback_save, self.callback_open] = save_open
         [self.callback_addition, self.callback_substitution, self.callback_dual_statement,
          self.callback_definition, self.callback_deduction, self.callback_property, self.callback_choice] = Rules
-        self.callback_help = help
+        [self.callback_help, self.callback_tutorial] = help
         self.callback_import = callback_import
 
         #Canvas
@@ -30,38 +29,33 @@ class View(Tk):
         self.title("Tree GUI")
         self.geometry('1400x800+200+100')
         # Entries
-        self.NodeTxt = Entry(master=self)
-        self.NodeTxt.insert(0, '')
-        self.NodeTxt.place(x=200, y=23, width=700)
         self.NodeEdit = Entry(master=self)
         self.NodeEdit.insert(0, '')
-        self.NodeEdit.place(x=400, y=50, width=500)
+        self.NodeEdit.place(x=450, y=20, width=450)
         self.NodeIndex = Entry(master=self)
         self.NodeIndex.insert(0, 'right')
         self.NodeIndex.place(x=130, y=23, width=50)
         self.LeafWidth = Entry(master=self)
         self.LeafWidth.insert(0, '100')
-        self.LeafWidth.place(x=130, y=110, width=50)
+        self.LeafWidth.place(x=130, y=80, width=50)
 
-        # Button
-        self.add = Button(master=self, text="Add Child", command=self.callback_add)
-        self.add.place(x=20, y=20, width=100)
+        # Buttons
         self.second = Button(master=self, text="Clear Secondaries", command=self.callback_sec)
-        self.second.place(x=20, y=50, width=100)
-        self.remove = Button(master=self, text="Remove Node", command=self.callback_removeNode)
-        self.remove.place(x=20, y=80, width=100)
+        self.second.place(x=20, y=20, width=100)
         self.remove = Button(master=self, text="Remove Subtree", command=self.callback_removeSub)
-        self.remove.place(x=120, y=80, width=100)
+        self.remove.place(x=20, y=50, width=100)
         self.leafw = Button(master=self, text="Change Width", command=self.callback_width)
-        self.leafw.place(x=20, y=110, width=100)
+        self.leafw.place(x=20, y=80, width=100)
         self.save = Button(master=self, text="Save Tree", command=self.callback_save)
-        self.save.place(x=200, y=110, width=150)
+        self.save.place(x=200, y=50, width=150)
         self.open = Button(master=self, text="Open Tree", command=self.callback_open)
-        self.open.place(x=400, y=110, width=150)
-        self.help = Button(master=self, text="Help", command=self.callback_help)
-        self.help.place(x=20, y=170, width=150)
+        self.open.place(x=200, y=80, width=150)
         self._import = Button(master=self, text="Import", command=self.callback_import)
-        self._import.place(x=600, y=110, width=150)
+        self._import.place(x=200, y=110, width=150)
+        self.help = Button(master=self, text="Help", command=self.callback_help)
+        self.help.place(x=20, y=140, width=150)
+        self.tutorial = Button(master=self, text="Tutorial", command=self.callback_tutorial)
+        self.tutorial.place(x=20, y=170, width=150)
         # syntax rules
         self.addition = Button(master=self, text="Addition", command=self.callback_addition)
         self.addition.place(x=950, y=20, width=150)
@@ -81,9 +75,9 @@ class View(Tk):
 
         # Label
         self.Error = Label(master=self, text='Error Messages are displayed here', bg="pink")
-        self.Error.place(x=220, y=80)
+        self.Error.place(x=220, y=20)
         self.FileName = Label(master=self, text='This tree has no name')
-        self.FileName.place(x=20, y=150)
+        self.FileName.place(x=20, y=110)
         # Canvas Config
         self.vbar = Scrollbar(self, orient=VERTICAL)
         self.vbar.pack(side=RIGHT, fill=Y)
@@ -111,11 +105,11 @@ class Controller(object):
         self.edge_height = 90
         self.font_height = 20
         self.leaf_width = 100
-        self.view = View(self.add_child, [self.click, self.mousewheel, self.doubleclick], self.second_choice,
-                         [self.removeNode, self.removeSub],
+        self.view = View([self.click, self.mousewheel, self.doubleclick], self.second_choice,
+                         self.removeSub,
                          self.width, [self.save, self.open],
                          [self.addition, self.substitution, self.dual_statement, self.definition,
-                          self.deduction, self.property, self.choice], self.help, self._import)
+                          self.deduction, self.property, self.choice], [self.help, self.tutorial], self._import)
         self.tree = Tree.MathTree(None, "a=a", (0, 0))
         self.nodes = [self.tree]
         self.selected_node = self.tree
@@ -128,7 +122,7 @@ class Controller(object):
     def draw_tree(self):
         self.view.Canvas.delete("all")
         self.nodes = self.tree.get_all_children()
-        Draw.draw_tree(self, self.tree, 600, 200)
+        Draw.draw_tree(self, self.tree, 600, 130)
 
     # Math Logic Buttons:
     def addition(self):
@@ -256,36 +250,9 @@ class Controller(object):
         self.view.Error.config(text=res[1])
         self.draw_tree()
 
-
-    def add_child(self):
-        if self.view.NodeTxt.get() == "":
-            self.view.Error.config(text="A Leaf can not have an empty statement")
-            return
-        child = Tree.MathTree(self.selected_node, self.view.NodeTxt.get(), (0, 0), True)
-        res = self.selected_node.add_child(child, index=self.view.NodeIndex.get())
-
-        if res == None:
-            self.nodes.append(child)
-            self.view.NodeTxt.delete(0, "end")
-            self.draw_tree()
-        elif res == "maxchilds":
-            self.view.Error.config(text="A Leaf can only have 3 children")
-
     def removeSub(self):
         if self.secondary_nodes[0] is not None:
             self.secondary_nodes[0].parent.children.remove(self.secondary_nodes[0])
-            self.secondary_nodes[0] = self.secondary_nodes[0].parent
-        self.draw_tree()
-
-    def removeNode(self):
-        if self.secondary_nodes[0].parent is not None:
-            if len(self.secondary_nodes[0].parent.children) + len(self.secondary_nodes[0].children) <= 4:
-                self.secondary_nodes[0].parent.children.remove(self.secondary_nodes[0])
-                for child in self.secondary_nodes[0].children:
-                    child.parent = self.secondary_nodes[0].parent
-                    self.secondary_nodes[0].parent.children.append(child)
-            else:
-                self.view.Error.config(text="There are more than 4 children")
             self.secondary_nodes[0] = self.secondary_nodes[0].parent
         self.draw_tree()
 
@@ -339,6 +306,10 @@ class Controller(object):
 
     def help(self):
         input_dialog = PopUps.Help(self.view)
+        self.view.wait_window(input_dialog.top)
+
+    def tutorial(self):
+        input_dialog = PopUps.Tutorial(self.view)
         self.view.wait_window(input_dialog.top)
 
     def width(self):

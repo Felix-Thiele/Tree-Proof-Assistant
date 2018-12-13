@@ -351,7 +351,9 @@ class MathTree(TreeNode):
                     cur_node = child
                 # first statement
                 if additions[1]:
-                    copy = node.sentence.copy()
+                    print(indef2)
+                    print(node.sentence)
+                    copy = node.sentence.replace(Term(indef2), Term(inactive+"("+indef1+")"))
                     copy.presumptions = copy.presumptions[1:]
                     statement = Statement(str("{"+inactive + "(" + indef1 + ")" + "!=" + inactive + "}" + repr(copy)))
                     child = MathTree(cur_node, statement)
@@ -360,7 +362,7 @@ class MathTree(TreeNode):
                     cur_node = child
 
                 if additions[2]:
-                    copy = node.sentence.copy()
+                    copy = node.sentence.replace(Term(indef2), Term(inactive+"("+indef1+")"))
                     copy.presumptions = copy.presumptions[2:]
                     statement = Statement(str("{"+inactive + "(" + indef1 + ")" + "!=" + inactive + "}" + repr(copy)))
                     child = MathTree(cur_node, statement)
@@ -380,7 +382,7 @@ class MathTree(TreeNode):
 
                     # third statement
                     if additions[4]:
-                        statement = Statement(str(inactive+"(" + indef1+")" + "!=" + inactive))
+                        statement = Statement(str(inactive+"(" + def1+")" + "!=" + inactive))
                         child = MathTree(cur_node, statement)
                         cur_node.add_child(child)
                         children.append(child)
@@ -408,7 +410,7 @@ class MathTree(TreeNode):
                     # sixth statement
                     if additions[7]:
                         statement = Statement(str("{" + inactive + "(" + indef1 + ")" + "!=" + inactive + "}"
-                                                  + inactive + "(" + indef1 + ")" + "(" + inactive + ")"
+                                                  + inactive + "(" + inactive + "(" + indef1 + ")" + ")"
                                                   + "!=" + inactive + "(" + indef1 + ")"))
                         child = MathTree(cur_node, statement)
                         cur_node.add_child(child)

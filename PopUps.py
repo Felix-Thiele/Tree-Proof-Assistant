@@ -518,3 +518,39 @@ class Help:
         """
         self.T.insert(END, quote)
 
+
+class Tutorial:
+    def __init__(self, parent):
+        top = self.top = Toplevel(parent)
+
+        self.top.geometry('1000x800+400+100')
+        self.T = Text(top, height=800, width=1000)
+        self.T.pack()
+        quote = """
+        From my own experience, i know that learning how to maneuver an assisted theorem prover, or any program for that
+        matter, can be quite a daunting prospect. So in this short tutorial i will go through the mechanics of this 
+        program, giving click to click instructions on how to build one of the sample trees from the paper. 
+         
+        First lets add two dual statements. Click on the "Dual Statement" button. A window will pop up, asking you to 
+        enter a Statement. Enter "{e=e}[n=n]e!=n" and click add. This will append two children two the root.
+        
+        Next lets apply the definition rule. Double click on the existential child, to change the current leaf node and 
+        hit the "Definition" button. This wil open up a dialog, asking you to enter an inactive letter. Enter the letter
+        "x" and click on set. Now a node and a sub-node will get added to the existential child of the root.
+        
+        Now lets add a new variable "y". To do this click on the "Addition" button. Type "x" into the left entry, and 
+        "y" into the right entry. Click on the equality sign, and pick the inequality sign. Finally hit add.
+        
+        Slightly modify the step above, to add a node with "y=y".
+        
+        Now can apply a deduction. Single click on the node with the statement "{n=n}x=n". You have now selected a 
+        secondary node. Now press on deduction. The node "x=y" should be added.
+        Notice how all secondary nodes turn blue. If you want to deselect all secondary nodes hit
+        clear secondaries. 
+        
+        But now we have a contradiction, since we have "x=y" and "x != y" in the same ancestry line. Deselect all 
+        secondaries and select "x!=y" as your secondary node. Click on "Dual Statement". Now the dual statement of the 
+        last dual fork gets added in the middle of that nodes parent. We have now proved "{e=e}[n=n]e!=n" successfully!!
+        """
+        self.T.insert(END, quote)
+
