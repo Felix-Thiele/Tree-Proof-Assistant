@@ -377,7 +377,7 @@ class MathTree(TreeNode):
                     children.append(child)
                     cur_node = child
 
-                print(sentence1.is_equality())
+
                 if sentence1.is_equality() and sentence1.parameters[0] == sentence1.parameters[1]:
 
                     # third statement
@@ -429,24 +429,25 @@ class MathTree(TreeNode):
 
                     if secondnode:
                         anc_sent = secondnode.sentence
-                        if len(anc_sent.presumptions) > 1:
-                            pre1 = anc_sent.presumptions[0][1].replace(def1, def3)
+                        if len(anc_sent.presumptions) > 1 and anc_sent.presumptions[0][0] == "universal":
+                            mod_sentence1 = sentence1.replace()
+                            pre1 = anc_sent.presumptions[0][1].replace(def3, indef1)
+                            if pre1 == sentence1:
+                            # eighth statement
+                            if additions[9]:
+                                statement = Statement(str("{"+sentence1+"}"+inactive+"("+indef1+") != " +inactive))
+                                child = MathTree(cur_node, statement)
+                                cur_node.add_child(child)
+                                children.append(child)
+                                cur_node = child
 
-                        # eighth statement
-                        if additions[9]:
-                            statement = Statement(str("{"+sentence1+"}"+inactive+"("+indef1+") != " +inactive))
-                            child = MathTree(cur_node, statement)
-                            cur_node.add_child(child)
-                            children.append(child)
-                            cur_node = child
-
-                        # ninth statement
-                        if additions[10]:
-                            statement = node.sentence.replace(indef2, Term(str(inactive+"("+indef1+")")))
-                            child = MathTree(cur_node, statement)
-                            cur_node.add_child(child)
-                            children.append(child)
-                            cur_node = child
+                            # ninth statement
+                            if additions[10]:
+                                statement = node.sentence.replace(indef2, Term(str(inactive+"("+indef1+")")))
+                                child = MathTree(cur_node, statement)
+                                cur_node.add_child(child)
+                                children.append(child)
+                                cur_node = child
 
                 return True, "Choice succesful", children, cur_node
 
