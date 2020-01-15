@@ -433,6 +433,7 @@ class MathTree(TreeNode):
                             mod_sentence1 = sentence1.replace()
                             pre1 = anc_sent.presumptions[0][1].replace(def3, indef1)
                             if pre1 == sentence1:
+                                pass
                             # eighth statement
                             if additions[9]:
                                 statement = Statement(str("{"+sentence1+"}"+inactive+"("+indef1+") != " +inactive))
